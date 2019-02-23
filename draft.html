@@ -1,0 +1,52 @@
+
+
+<div id="output" style="max-width:600px;">formatting</div>
+
+<script>
+
+  let site = 'https://thompson.wiki.innovateoregon.org' 
+  let chapters = ["The Dayton Experiment: Index"]
+  let appendix = []
+
+  function slug (title) {
+    return title
+      .replace(/\s/g, '-')
+      .replace(/[^A-Za-z0-9-]/g, '')
+      .toLowerCase()
+  }
+
+  function page (title) {
+    const trouble = (text) => ({title, story:[{text}]})
+    return fetch (`${site}/${slug(title)}.json`)
+      .then(res => res.ok ? res.json() : trouble('We could not find this page'))
+      .catch(err => trouble(err.message))
+  }
+
+  function item (type, text) {
+    if (m = /^\[\[(.*?)\]\]$/.exec(text)) {
+      if (!chapters.includes(m[1])) chapters.push(m[1])
+    }
+    return `<p>${text}</p>`
+  }
+
+  function title (page) {
+    return `<h3>${page.title}</h3>`
+  }
+
+  function story (page) {
+    return page.story.map(each => item(each.type, each.text)).join("\n")
+  }
+
+  async function draft () {
+    let body = []
+    for (var each of chapters) {
+      output.innerHTML = `formatting ${each}`
+      let chapter = await page(each)
+      body.push(title(chapter) + story(chapter))
+    }
+    output.innerHTML = body.join("\n")
+  }
+
+  draft()
+
+</script>
