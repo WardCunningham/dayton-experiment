@@ -4,9 +4,15 @@
 
 <script>
 
-  let site = 'https://thompson.wiki.innovateoregon.org' 
+  let site = 'https://thompson.wiki.innovateoregon.org'
   let chapters = ["The Dayton Experiment: Index"]
   let appendix = []
+
+  function merge (array, element) {
+    if (!array.includes(element)) {
+      array.push(element)
+    }
+  }
 
   function slug (title) {
     return title
@@ -23,7 +29,19 @@
   }
 
   function item (type, text) {
-    const href = (title) => `<a href="#${slug(title)}">${title.slice(2,-2)}</a>`
+    const href = (m) => {
+      var title = m.slice(2,-2)
+      merge(appendix, title)
+      return `<a href="#${slug(title)}">${title}</a>`
+    }
+    switch(type) {
+      case 'html':
+        text = text.replace(/<.*?>/,'')
+        break
+      case 'markdown':
+        text = text.replace(/_(.+)_/g,"<i>$1</i>")
+        break
+    }
     if (m = /^\[\[(.*?)\]\]$/.exec(text)) {
       if (!chapters.includes(m[1])) chapters.push(m[1])
     }
@@ -44,7 +62,22 @@
       output.innerHTML = `formatting ${each}`
       let chapter = await page(each)
       body.push(title(chapter) + story(chapter))
+      if (each == chapters[0]) {
+        body.push('<p><a href="#appendix">Appendix</a></p>')
+        body.push('<p><a href="#index">Index</a></p>')
+      }
     }
+    body.push('<a name=appendix><h2>Appendix</h2></a>')
+    for (var each of appendix) {
+      if (!chapters.includes(each)) {
+        output.innerHTML = `formatting appendix ${each}`
+        let chapter = await page(each)
+        body.push(title(chapter) + story(chapter))
+      }
+    }
+    body.push('<a name=index><h2>Index</h2></a>')
+    appendix.sort()
+    body.push(appendix.map(title =>`<a href="#${slug(title)}">${title}</a>`).join("<br>\n"))
     output.innerHTML = body.join("\n")
   }
 
