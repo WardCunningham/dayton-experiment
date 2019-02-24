@@ -1,6 +1,6 @@
 
 
-<div id="output" style="max-width:600px;">formatting</div>
+<div id="output" style="max-width:600px;">loading</div>
 
 <script>
 
@@ -21,11 +21,9 @@
       .toLowerCase()
   }
 
-  function page (title) {
-    const trouble = (text) => ({title, story:[{text}]})
-    return fetch (`${site}/${slug(title)}.json`)
-      .then(res => res.ok ? res.json() : trouble('We could not find this page'))
-      .catch(err => trouble(err.message))
+  function json (url) {
+    return fetch(url)
+      .then(res => res.json())
   }
 
   function item (type, text) {
@@ -56,11 +54,12 @@
     return page.story.map(each => item(each.type, each.text)).join("\n")
   }
 
-  async function draft () {
+  function draft (pages) {
+    output.innerHTML = 'formatting'
+    const trouble = (title) => ({title, story:[{text:'We could not find this page'}]})
     let body = []
     for (var each of chapters) {
-      output.innerHTML = `formatting ${each}`
-      let chapter = await page(each)
+      let chapter = pages[slug(each)]||trouble(each)
       body.push(title(chapter) + story(chapter))
       if (each == chapters[0]) {
         body.push('<p><a href="#appendix">Appendix</a></p>')
@@ -70,8 +69,7 @@
     body.push('<a name=appendix><h2>Appendix</h2></a>')
     for (var each of appendix) {
       if (!chapters.includes(each)) {
-        output.innerHTML = `formatting appendix ${each}`
-        let chapter = await page(each)
+        let chapter = pages[slug(each)]||trouble(each)
         body.push(title(chapter) + story(chapter))
       }
     }
@@ -81,6 +79,18 @@
     output.innerHTML = body.join("\n")
   }
 
-  draft()
+  function asmap (array) {
+    const bemap = (map, each) => {map[slug(each.title)] = each; return map}
+    return array.reduce(bemap, {})
+  }
+
+  async function load () {
+    let sitemap = await json(`${site}/system/sitemap.json`)
+    output.innerHTML = `loading ${sitemap.length} pages`
+    Promise.all(sitemap.map(each => json(`${site}/${each.slug}.json`)))
+      .then(all => draft(asmap(all)))
+  }
+
+  load()
 
 </script>
