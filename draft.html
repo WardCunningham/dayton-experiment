@@ -23,14 +23,15 @@
   }
 
   function item (type, text) {
+    const href = (title) => `<a href="#${slug(title)}">${title.slice(2,-2)}</a>`
     if (m = /^\[\[(.*?)\]\]$/.exec(text)) {
       if (!chapters.includes(m[1])) chapters.push(m[1])
     }
-    return `<p>${text}</p>`
+    return `<p>${text.replace(/\[\[(.+?)\]\]/g,href)}</p>`
   }
 
   function title (page) {
-    return `<h3>${page.title}</h3>`
+    return `<a name=${slug(page.title)}><h3>${page.title}</h3></a>`
   }
 
   function story (page) {
