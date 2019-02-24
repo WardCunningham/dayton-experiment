@@ -1,6 +1,9 @@
-
-
+<html>
 <div id="output" style="max-width:600px;">loading</div>
+
+<style>
+  a {text-decoration: none;}
+</style>
 
 <script>
 
@@ -54,7 +57,8 @@
   }
 
   function title (page) {
-    return `<a name=${slug(page.title)}><h3>${page.title}</h3></a>`
+    let s = slug(page.title)
+    return `<h3><a name=${s}>${page.title}</a><a href="${site}/${s}.html" target=_blank> ⬀ </a></h3>`
   }
 
   function story (page) {
@@ -102,3 +106,4 @@
   load()
 
 </script>
+<html>
