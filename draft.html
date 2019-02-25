@@ -1,4 +1,8 @@
 <html>
+<head>
+  <meta charset="utf-8">
+</head>
+<body>
 <div id="output" style="max-width:600px;">loading</div>
 
 <style>
@@ -84,6 +88,7 @@
         if (each == chapters[0]) {
           body.push('<p><a href="#appendix">Appendix</a></p>')
           body.push('<p><a href="#index">Index</a></p>')
+          body.push('<p><a href="#omitted">Omitted</a></p>')
         }
       }
     }
@@ -94,6 +99,9 @@
     body.push('<a name=index><h2>Index</h2></a>')
     appendix.sort()
     body.push(appendix.map(link).join("<br>\n"))
+    body.push('<a name=omitted><h2>Omitted</h2></a>')
+    let omitted = Object.values(pageinfo).map(each => each.title).filter(each => !appendix.includes(each))
+    emit(omitted)
     output.innerHTML = body.join("\n")
   }
 
@@ -113,4 +121,5 @@
   load()
 
 </script>
+</body>
 <html>
