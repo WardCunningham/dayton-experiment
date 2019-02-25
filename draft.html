@@ -13,7 +13,8 @@
   let pageinfo = {}
 
   function merge (array, element) {
-    if (!array.includes(element)) {
+    let info = pageinfo[slug(element)]
+    if (info && !array.includes(info.title)) {
       array.push(element)
     }
   }
@@ -36,7 +37,9 @@
     return `<a href="#${slug(title)}" title="${hover}">${title}</a>`
   }
 
-  function item (type, text) {
+  function item (obj) {
+    let type = obj.type || 'paragraph'
+    let text = obj.text || ''
     const href = (m) => {
       var title = m.slice(2,-2)
       merge(appendix, title)
@@ -44,14 +47,14 @@
     }
     switch(type) {
       case 'html':
-        text = text.replace(/<.*?>/,'')
+        text = text.replace(/<.*?>/g,'')
         break
       case 'markdown':
         text = text.replace(/_(.+)_/g,"<i>$1</i>")
         break
     }
     if (m = /^\[\[(.*?)\]\]$/.exec(text)) {
-      if (!chapters.includes(m[1])) chapters.push(m[1])
+      merge(chapters, m[1])
     }
     return `<p>${text.replace(/\[\[(.+?)\]\]/g,href)}</p>`
   }
@@ -62,28 +65,29 @@
   }
 
   function story (page) {
-    return page.story.map(each => item(each.type, each.text)).join("\n")
+    return page.story.map(item).join("\n")
   }
 
   function draft (pages) {
     output.innerHTML = 'formatting'
     const trouble = (title) => ({title, story:[{text:'We could not find this page'}]})
-    let body = []
-    for (var each of chapters) {
-      let chapter = pages[slug(each)]||trouble(each)
-      body.push(title(chapter) + story(chapter))
-      if (each == chapters[0]) {
-        body.push('<p><a href="#appendix">Appendix</a></p>')
-        body.push('<p><a href="#index">Index</a></p>')
-      }
-    }
-    body.push('<a name=appendix><h2>Appendix</h2></a>')
-    for (var each of appendix) {
-      if (!chapters.includes(each)) {
+    var body = []
+
+    function emit (list) {
+      for (var i = 0; i < list.length; i++) {
+        let each = list[i]
         let chapter = pages[slug(each)]||trouble(each)
         body.push(title(chapter) + story(chapter))
+        if (each == chapters[0]) {
+          body.push('<p><a href="#appendix">Appendix</a></p>')
+          body.push('<p><a href="#index">Index</a></p>')
+        }
       }
     }
+
+    emit(chapters)
+    body.push('<a name=appendix><h2>Appendix</h2></a>')
+    emit(appendix)
     body.push('<a name=index><h2>Index</h2></a>')
     appendix.sort()
     body.push(appendix.map(link).join("<br>\n"))
