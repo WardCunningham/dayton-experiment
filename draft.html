@@ -72,11 +72,14 @@
     output.innerHTML = 'formatting'
     const trouble = (title) => ({title, story:[{text:'We could not find this page'}]})
     var body = []
+    var emitted = {}
 
     function emit (list) {
       for (var i = 0; i < list.length; i++) {
         let each = list[i]
         let chapter = pages[slug(each)]||trouble(each)
+        if (emitted[chapter.title]) continue
+        emitted[chapter.title] = true
         body.push(title(chapter) + story(chapter))
         if (each == chapters[0]) {
           body.push('<p><a href="#appendix">Appendix</a></p>')
